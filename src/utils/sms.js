@@ -1,5 +1,5 @@
 // Create an instance of Twilio Client
-const client = new twilio(accountSid, authToken);
+// const client = new twilio(accountSid, authToken);
 
 // Function to generate a random OTP
 function generateOTP() {
