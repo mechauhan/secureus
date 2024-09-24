@@ -76,12 +76,19 @@ const updateCoordinates = async (req, res) => {
     };
 
     let user = await db.getData(userModel, searchObj);
-    if (user) {
-      await db.findAndUpdate(
+    if (user && user.length > 0) {
+      console.log("user", user);
+
+      let data = await db.findAndUpdate(
         userModel,
         { mobile },
-        { locationData: [...user.locationData, { lat, long }] }
+        { locationData: [...user[0].locationData, { lat, long }] }
       );
+      return res.send({
+        message: "Location updated",
+        data: data,
+        status: false,
+      });
     } else {
       return res.send({
         message: "User not registered",
@@ -90,6 +97,8 @@ const updateCoordinates = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log("error", error);
+
     return res.send({ error });
   }
 };
