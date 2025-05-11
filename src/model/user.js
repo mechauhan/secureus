@@ -5,9 +5,17 @@ let Users = new Schema(
   {
     // UsersId: { type: Schema.ObjectId, ref: "Student" },
     name: { type: String, default: "", trim: true },
-    mobile: { type: Number, required: true, unique: true },
+    mobile: { type: Number, unique: true, required: true },
     created_on: { type: Date, default: Date.now() },
-    otp: { type: Number, length: 6 },
+    userFaceImageData: {
+      type: String, // Store as base64 string or a URL to the image
+      required: true,
+    },
+    isFaceVerified: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     locationData: [],
   },
   { versionKey: false }

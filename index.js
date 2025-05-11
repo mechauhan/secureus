@@ -3,10 +3,18 @@ const app = express();
 const authRoutes = require("./src/route/web");
 const mongoose = require("mongoose");
 // Connection to mongoDB
+// mongoose.connect(
+//   `mongodb+srv://secureus150:ItL7mdu3XmQKn5ba@cluster0.l2juy.mongodb.net/`,
+//   { dbName: "secureus" }
+// );
+
+
+
 mongoose.connect(
-  `mongodb+srv://secureus150:ItL7mdu3XmQKn5ba@cluster0.l2juy.mongodb.net/`,
+  `mongodb+srv://prashantku1411:PrA9sfRhajqz7q7x@cluster0.k895ebr.mongodb.net/`,
   { dbName: "secureus" }
 );
+
 // const initRoutes = require("./src/route/web");
 // initRoutes(app);
 // app.use()

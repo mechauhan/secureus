@@ -7,4 +7,6 @@ router.post("/register", authController.register);
 router.post("/verifyOTP", authController.verifyOTP);
 router.get("/userList", authController.getUserList);
 router.post("/updateLocation", authController.updateCoordinates);
+router.post("/userDetail", authController.userDetail);
+router.patch("/updateFaceVerification/:id", authController.updateFaceVerification);
 module.exports = router;
