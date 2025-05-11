@@ -9,4 +9,5 @@ router.get("/userList", authController.getUserList);
 router.post("/updateLocation", authController.updateCoordinates);
 router.post("/userDetail", authController.userDetail);
 router.patch("/updateFaceVerification/:id", authController.updateFaceVerification);
+router.get("/getSingleUser/:id",authController.getSingleUser)
 module.exports = router;

@@ -108,17 +108,16 @@ const userDetail = async (req, res) => {
 
   // Validate required fields
   if (!userName || !mobile) {
-    return res
-      .status(400)
-      .json({
-        message: "Invalid input: 'userName' and 'mobile' are required.",
-      });
+    return res.status(400).json({
+      message: "Invalid input: 'userName' and 'mobile' are required.",
+    });
   }
 
   try {
     // Check if a user with the same mobile number already exists
     let user = await db.getData(userModel, { mobile });
-    if (user) {
+    console.log(user);
+    if (user.length > 0) {
       return res
         .status(409)
         .json({ message: "User with this mobile number already exists." });
@@ -136,27 +135,29 @@ const userDetail = async (req, res) => {
     const savedUser = await newUser.save();
     res
       .status(201)
-      .json({ message: "User added successfully", userId: savedUser._id });
+      .json({ message: "User added successfully", mobile: mobile });
   } catch (err) {
     console.error("Error adding user:", err.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// app.patch("/updateFaceVerification/:id", 
-  
+// app.patch("/updateFaceVerification/:id",
+
 const updateFaceVerification = async (req, res) => {
   const userId = req.params.id; // Get user ID from the route parameter
-  const { isFaceVerified } = req.body; // Get new status from the request body
+  const { isFaceVerified} = req.body; // Get new status from the request body
 
   if (typeof isFaceVerified !== "boolean") {
-    return res.status(400).json({ message: "Invalid input: 'isFaceVerified' must be a boolean." });
+    return res
+      .status(400)
+      .json({ message: "Invalid input: 'isFaceVerified' must be a boolean." });
   }
 
   try {
     const updatedUser = await db.findAndUpdate(
       userModel,
-      { mobile :userId},
+      { mobile: userId },
       { isFaceVerified }
     );
 
@@ -164,13 +165,27 @@ const updateFaceVerification = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    res.status(200).json({ message: "Face verification status updated successfully", user: updatedUser });
+    res
+      .status(200)
+      .json({
+        message: "Face verification status updated successfully",
+        // user: updatedUser,
+      });
   } catch (err) {
     console.error("Error updating user:", err.message);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
+const getSingleUser = async (req, res) => {
+  try {
+    const userId = req.params.id; 
+    let user = await db.getData(userModel, { mobile:userId });
+    return res.send({ message: "Users Details", data: user });
+  } catch (error) {
+    return res.send({ error });
+  }
+};
 
 module.exports = {
   register,
@@ -178,5 +193,6 @@ module.exports = {
   getUserList,
   updateCoordinates,
   userDetail,
-  updateFaceVerification
+  updateFaceVerification,
+  getSingleUser
 };
