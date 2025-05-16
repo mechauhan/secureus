@@ -26,5 +26,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(4000, "0.0.0.0", () => {
-  console.log("pokemon");
+  console.log("running at port 4000");
 });

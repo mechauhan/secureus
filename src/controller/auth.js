@@ -4,22 +4,22 @@ const { generateOTP } = require("../utils/sms");
 
 const register = async (req, res, next) => {
   try {
-    console.log("req.body.mobile", req.body.mobile);
-    let { mobile } = req.body;
+    console.log("req.body.empId", req.body.empId);
+    let { empId } = req.body;
     let searchObj = {
-      mobile,
+      empId,
     };
 
     let user = await db.getData(userModel, searchObj);
     let otp = generateOTP();
     if (!user) {
-      //   await userModel.create({ mobile, otp });
-      //   let data = await db.insert(userModel, { mobile, otp });
-      const user1 = new userModel({ mobile: mobile });
+      //   await userModel.create({ empId, otp });
+      //   let data = await db.insert(userModel, { empId, otp });
+      const user1 = new userModel({ empId: empId });
       let data = await user1.save();
       return res.send({ message: "user added", data: { otp }, status: true });
     } else {
-      let update = await db.findAndUpdate(userModel, { mobile }, { otp: otp });
+      let update = await db.findAndUpdate(userModel, { empId }, { otp: otp });
       console.log(update);
       return res.send({
         message: "user data updated",
@@ -34,14 +34,14 @@ const register = async (req, res, next) => {
 
 const verifyOTP = async (req, res) => {
   try {
-    let { mobile, otp } = req.body;
+    let { empId, otp } = req.body;
     let searchObj = {
-      mobile,
+      empId,
       otp,
     };
     let user = await db.getData(userModel, searchObj);
     if (user.length > 0) {
-      await db.findAndUpdate(userModel, { mobile }, { otp: null });
+      await db.findAndUpdate(userModel, { empId }, { otp: null });
       return res.send({
         message: "OTP Verified",
         data: "successfull",
@@ -70,9 +70,9 @@ const getUserList = async (req, res) => {
 
 const updateCoordinates = async (req, res) => {
   try {
-    let { lat, long, mobile } = req.body;
+    let { lat, long, empId } = req.body;
     let searchObj = {
-      mobile,
+      empId,
     };
 
     let user = await db.getData(userModel, searchObj);
@@ -81,7 +81,7 @@ const updateCoordinates = async (req, res) => {
 
       let data = await db.findAndUpdate(
         userModel,
-        { mobile },
+        { empId },
         { locationData: [...user[0].locationData, { lat, long }] }
       );
       return res.send({
@@ -104,41 +104,56 @@ const updateCoordinates = async (req, res) => {
 };
 
 const userDetail = async (req, res) => {
-  const { userName, userFaceImageData, mobile, isFaceVerified } = req.body;
+  const { name, userFaceImageData, empId, isFaceVerified } = req.body;
 
   // Validate required fields
-  if (!userName || !mobile) {
+  if (!empId) {
     return res.status(400).json({
-      message: "Invalid input: 'userName' and 'mobile' are required.",
+      message: "Invalid input: 'empId' are required.",
     });
   }
 
   try {
-    // Check if a user with the same mobile number already exists
-    let user = await db.getData(userModel, { mobile });
+    // Check if a user with the same empId number already exists
+    let user = await db.getData(userModel, { empId });
     console.log(user);
     if (user.length > 0) {
-      return res
-        .status(409)
-        .json({ message: "User with this mobile number already exists." });
+      // return res
+      //   .status(409)
+      //   .json({ message: "User with this empId number already exists." });
+      const updatedUser = await db.findAndUpdate(
+        userModel,
+        { empId: empId },
+        {
+          name: name ? name : user[0].name,
+          userFaceImageData: userFaceImageData
+            ? userFaceImageData
+            : user[0].userFaceImageData,
+          isFaceVerified: isFaceVerified
+            ? isFaceVerified
+            : user[0].isFaceVerified,
+        }
+      );
+      return res.status(200).json({
+        message: "Data updated",
+        // user: updatedUser,
+      });
     }
 
     // Create a new user
     const newUser = new userModel({
-      userName,
+      name,
       userFaceImageData,
-      mobile,
+      empId,
       isFaceVerified,
     });
 
     // Save the new user to the database
     const savedUser = await newUser.save();
-    res
-      .status(201)
-      .json({ message: "User added successfully", mobile: mobile });
+   return  res.status(201).json({ message: "User added successfully", empId: empId });
   } catch (err) {
     console.error("Error adding user:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -146,7 +161,7 @@ const userDetail = async (req, res) => {
 
 const updateFaceVerification = async (req, res) => {
   const userId = req.params.id; // Get user ID from the route parameter
-  const { isFaceVerified} = req.body; // Get new status from the request body
+  const { isFaceVerified } = req.body; // Get new status from the request body
 
   if (typeof isFaceVerified !== "boolean") {
     return res
@@ -157,7 +172,7 @@ const updateFaceVerification = async (req, res) => {
   try {
     const updatedUser = await db.findAndUpdate(
       userModel,
-      { mobile: userId },
+      { empId: userId },
       { isFaceVerified }
     );
 
@@ -165,12 +180,10 @@ const updateFaceVerification = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Face verification status updated successfully",
-        // user: updatedUser,
-      });
+    res.status(200).json({
+      message: "Face verification status updated successfully",
+      // user: updatedUser,
+    });
   } catch (err) {
     console.error("Error updating user:", err.message);
     res.status(500).json({ message: "Internal server error" });
@@ -179,9 +192,18 @@ const updateFaceVerification = async (req, res) => {
 
 const getSingleUser = async (req, res) => {
   try {
-    const userId = req.params.id; 
-    let user = await db.getData(userModel, { mobile:userId });
-    return res.send({ message: "Users Details", data: user });
+    const userId = req.params.id;
+    let user = await db.getData(userModel, { empId: userId });
+    return res.send({ message: "User Details", data: user });
+  } catch (error) {
+    return res.send({ error });
+  }
+};
+
+const getAllUsers = async (req, res) => {
+  try {
+    let user = await db.getData(userModel, {});
+    return res.send({ message: "Users Detail", data: user });
   } catch (error) {
     return res.send({ error });
   }
@@ -194,5 +216,6 @@ module.exports = {
   updateCoordinates,
   userDetail,
   updateFaceVerification,
-  getSingleUser
+  getSingleUser,
+  getAllUsers,
 };
